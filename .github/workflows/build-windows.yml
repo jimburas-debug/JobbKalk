@@ -1,0 +1,31 @@
+name: Bygg Windows-versjoner
+
+on:
+  workflow_dispatch:
+  push:
+    tags: ["v*"]
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+      - name: Test og bygg bærbar EXE
+        shell: pwsh
+        run: ./scripts/publish.ps1
+      - name: Installer NSIS
+        shell: pwsh
+        run: choco install nsis --yes --no-progress
+      - name: Bygg installasjonsfil
+        shell: pwsh
+        run: '& "C:\Program Files (x86)\NSIS\makensis.exe" installer\JobbKalk.nsi'
+      - uses: actions/upload-artifact@v4
+        with:
+          name: JobbKalk-Windows-x64
+          path: |
+            artifacts/portable/JobbKalk.exe
+            artifacts/JobbKalk-Setup-x64.exe
+          if-no-files-found: error
