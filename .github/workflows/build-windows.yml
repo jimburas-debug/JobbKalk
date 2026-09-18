@@ -1,9 +1,10 @@
-name: Bygg Windows-versjoner
+name: Bygg og publiser Windows-versjoner
 
 on:
   workflow_dispatch:
-  push:
-    tags: ["v*"]
+
+permissions:
+  contents: write
 
 jobs:
   build:
@@ -29,3 +30,14 @@ jobs:
             artifacts/portable/JobbKalk.exe
             artifacts/JobbKalk-Setup-x64.exe
           if-no-files-found: error
+      - name: Publiser permanent nedlasting
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create v0.1.0 `
+            artifacts/portable/JobbKalk.exe `
+            artifacts/JobbKalk-Setup-x64.exe `
+            --repo $env:GITHUB_REPOSITORY `
+            --title "JobbKalk v0.1.0" `
+            --notes "Første testversjon for Windows 10/11 64-bit. Inneholder både installasjonsprogram og bærbar EXE. Programmet er foreløpig ikke kodesignert, og Windows SmartScreen kan derfor vise en advarsel ved oppstart."
